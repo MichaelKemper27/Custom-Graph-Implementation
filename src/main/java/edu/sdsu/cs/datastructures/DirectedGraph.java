@@ -19,11 +19,15 @@ public class DirectedGraph<V> implements IGraph<V> {
     public void connect(V start, V destination) {
         try {
             LinkedList<V> updatedGraph = listOfItems.get((V) start);
+            boolean tmp = listOfItems.containsKey((V) destination);
+            if(!tmp)
+                throw new NoSuchElementException();
             updatedGraph.add((V) destination);
+
             listOfItems.put((V) start, updatedGraph);
         }
         catch (Exception e) {
-            e.printStackTrace();
+            throw new NoSuchElementException();
         }
     }
 
@@ -34,41 +38,74 @@ public class DirectedGraph<V> implements IGraph<V> {
 
     @Override
     public boolean contains(V label) {
-        for(V item: listOfItems.keySet()) {
-            if (listOfItems.get(item).contains(label)) {
-                return true;
-            }
+        if (listOfItems.containsKey(label)) {
+            return true;
         }
         return false;
     }
 
     @Override
-    public void disconnect(V start, V destination) throws NoSuchElementException{
+    public void disconnect(V start, V destination) {
         try {
             LinkedList<V> updatedGraph = listOfItems.get((V) start);
+            boolean tmp = updatedGraph.contains((V) destination);
+            if(!tmp)
+                throw new NoSuchElementException();
             updatedGraph.remove((V) destination);
             listOfItems.put((V) start, updatedGraph);
         }
-        catch (NoSuchElementException e) {
-            e.printStackTrace();
+        catch (Exception e) {
+            throw new NoSuchElementException();
+        }
+    }
+
+    private Set<V> checkVisited(List<V> graph, Set<V> visitedItems) {
+        Set<V> finalVisitedItems = new HashSet<>(visitedItems);
+        for(V item: graph) {
+            if (!finalVisitedItems.contains(item)) {
+                finalVisitedItems.add(item);
+                finalVisitedItems.addAll(checkVisited(listOfItems.get(item),finalVisitedItems));
+            }
+
+        }
+        return finalVisitedItems;
+    }
+
+    @Override
+    public boolean isConnected(V start, V destination) {
+        List<V> updatedGraph = listOfItems.get((V) start);
+        Set<V> visitedItems = new HashSet<>();
+        visitedItems = checkVisited(updatedGraph,visitedItems);
+        return visitedItems.contains((V) destination);
+    }
+
+    @Override
+    public Iterable<V> neighbors(V vertexName) {
+        try {
+            List<V> neighborList = listOfItems.get((V) vertexName);
+            boolean tmp = listOfItems.containsKey((V) vertexName);
+            if(!tmp)
+                throw new NoSuchElementException();
+            return neighborList;
+        }
+        catch (Exception e) {
+            throw new NoSuchElementException();
         }
     }
 
     @Override
-    public boolean isConnected(V start, V destination) throws NoSuchElementException {
-        List<V> updatedGraph = listOfItems.get((V) start);
-        return updatedGraph.contains((V) destination);
-    }
-
-    @Override
-    public Iterable<V> neighbors(V vertexName) throws NoSuchElementException {
-        List<V> neighborList = listOfItems.get((V) vertexName);
-        return neighborList;
-    }
-
-    @Override
-    public void remove(V vertexName) throws NoSuchElementException {
+    public void remove(V vertexName) {
+        if(!listOfItems.containsKey(vertexName)) {
+            throw new NoSuchElementException();
+        }
         listOfItems.remove((V) vertexName);
+        for(V key: listOfItems.keySet()) {
+            LinkedList<V> newList = listOfItems.get(key);
+            if(newList.contains(vertexName)) {
+                newList.remove(vertexName);
+                listOfItems.put(key, newList);
+            }
+        }
     }
 
     @Override
@@ -92,8 +129,20 @@ public class DirectedGraph<V> implements IGraph<V> {
 
     @Override
     public IGraph<V> connectedGraph(V origin) {
+        List<V> updatedGraph = listOfItems.get((V) origin);
+        Set<V> visitedItems = new HashSet<>();
+        visitedItems.add(origin);
+        visitedItems = checkVisited(updatedGraph,visitedItems);
         IGraph<V> directedGraph = new DirectedGraph<>();
-
+        for(V item: visitedItems) {
+            System.out.println("Has: " + item.toString());
+            directedGraph.add((V) item);
+        }
+        for(V item: visitedItems) {
+            for(V connectedItem: listOfItems.get((V)item)) {
+                directedGraph.connect(item, connectedItem);
+            }
+        }
         return directedGraph;
     }
 }
