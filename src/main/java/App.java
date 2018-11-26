@@ -27,8 +27,12 @@ public class App
         IGraph graph = new DirectedGraph<>();
         buildGraph(currFile,graph);
 
-        Iterable graphVertecies = graph.vertices();
-        System.out.println(graphVertecies);
+        Iterable graphVertices = graph.vertices();
+        for (Object v: graphVertices){
+            System.out.println(v);
+           Iterable neighbors =  graph.neighbors(v);
+            System.out.println(neighbors);
+        }
         //Put toString method here
 
         /**
@@ -43,8 +47,7 @@ public class App
         }
          */
 
-
-
+        scan.close();
     }
 
     private static boolean readFile(String path){
