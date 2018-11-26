@@ -8,7 +8,7 @@ import java.util.Scanner;
  *
  */
 
-public class App <V>
+public class App
 {
     static File currFile;
     public static void  main(String args[])
@@ -27,8 +27,11 @@ public class App <V>
         IGraph graph = new DirectedGraph<>();
         buildGraph(currFile,graph);
 
+        Iterable graphVertecies = graph.vertices();
+        System.out.println(graphVertecies);
         //Put toString method here
 
+        /**
         System.out.println("Select a Start and End Location:\n");
         String start = "";
         String end = "";
@@ -38,6 +41,9 @@ public class App <V>
             System.out.println("End: \n");
             end = scan.nextLine();
         }
+         */
+
+
 
     }
 
@@ -83,25 +89,33 @@ public class App <V>
 
         BufferedReader csvReader = null;
         try {
-            String currLine;
+            String currLine = "";
              csvReader = new BufferedReader(new FileReader(file));
 
-             while(csvReader.readLine() != null){
+             while(currLine != null){
                  currLine = csvReader.readLine();
-
                  String[] lineLst = currLine.split(",");
-                 if(lineLst[1] != null && !graph.contains(lineLst[1])){
-                     graph.add(lineLst[1]);
-                     graph.connect(lineLst[0],lineLst[1]);
-                 }else{
-                     if(!graph.contains(lineLst[0])){
-                         graph.add(lineLst[0]);
+
+                 //for debugging
+                 for (String str: lineLst){
+                     System.out.println(str);
+                 }
+
+                 for (String str: lineLst){
+                     if(!graph.contains(str)){
+                         System.out.println(str + " not found. Adding");
+                         graph.add(str);
                      }
+                 }
+
+                 if(lineLst.length > 1){
+                     System.out.println(" connecting " + lineLst[0] +
+                             " and " + lineLst[1]);
+                     graph.connect(lineLst[0],lineLst[1]);
                  }
 
              }
         }catch(Exception e){
-            System.out.println("Unhandled Exception");
         }
     }
 
